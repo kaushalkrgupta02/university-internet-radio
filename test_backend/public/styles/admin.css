@@ -1,0 +1,31 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #d0e6e9;
+    color: #333;
+  }
+  
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  #status, #broadcasting, #startTime, #listeners {
+    font-weight: bold;
+  }
+  
+  h3 {
+    margin-top: 30px;
+  }
+  
+  #logs {
+    background: #f4f4f4;
+    padding: 1em;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    font-family: monospace;
+    white-space: pre-wrap;
+    margin-top: 20px;
+  }
+  

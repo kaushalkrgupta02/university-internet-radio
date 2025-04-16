@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listener</title>
+</head>
+<body>
+    <h2>Listener Interface</h2>
+    <audio id="audio" autoplay controls></audio>
+
+    <script>
+        const ws = new WebSocket("wss://m9bsl4fv-3000.inc1.devtunnels.ms");
+        let pc;
+        const audio = document.getElementById("audio");
+
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ type: "listener" }));
+        };
+
+        ws.onmessage = async ({ data }) => {
+            const msg = JSON.parse(data);
+
+            if (msg.type === "offer") {
+                pc = new RTCPeerConnection();
+
+                pc.ontrack = (event) => {
+                    // This will play the incoming audio stream
+                    audio.srcObject = event.streams[0]; 
+                };
+
+                pc.onicecandidate = event => {
+                    if (event.candidate) {
+                        ws.send(JSON.stringify({
+                            type: "candidate",
+                            candidate: event.candidate,
+                            targetId: msg.senderId
+                        }));
+                    }
+                };
+
+                await pc.setRemoteDescription(new RTCSessionDescription(msg.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                ws.send(JSON.stringify({
+                    type: "answer",
+                    answer: pc.localDescription,
+                    targetId: msg.senderId
+                }));
+            }
+
+            if (msg.type === "candidate" && pc) {
+                await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+            }
+        };
+    </script>
+</body>
+</html>

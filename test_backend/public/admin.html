@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="styles/admin.css" />
+</head>
+<body>
+  <h1>Admin Dashboard</h1>
+  <p><strong>Broadcast Status:</strong> <span id="status">Connecting...</span></p>
+  <p><strong>Listener Count:</strong> <span id="listeners">0</span></p>
+  <p><strong>Broadcast Started At:</strong> <span id="start-time">-</span></p>
+
+  <h3>Logs</h3>
+  <div id="logs" class="log-box"></div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const listenerCountEl = document.getElementById("listeners");
+    const startTimeEl = document.getElementById("start-time");
+    const logsEl = document.getElementById("logs");
+
+    const ws = new WebSocket("wss://m9bsl4fv-3000.inc1.devtunnels.ms");
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: "admin" }));
+      appendLog("Connected to signaling server");
+    };
+
+    ws.onmessage = ({ data }) => {
+      const msg = JSON.parse(data);
+
+      if (msg.type === "admin-update") {
+        statusEl.innerText = msg.broadcasting ? "Active" : "Offline";
+        listenerCountEl.innerText = msg.listenerCount;
+        startTimeEl.innerText = msg.startTime || "-";
+      }
+
+      if (msg.type === "log") {
+        appendLog(`[${msg.timestamp || "🕒"}] ${msg.message}`);
+      }
+    };
+
+    function appendLog(message) {
+      const entry = document.createElement("div");
+      entry.textContent = message;
+      logsEl.appendChild(entry);
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+  </script>
+</body>
+</html>
